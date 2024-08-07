@@ -3,9 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Cat, Info, Award, Heart, Paw, Star, Sparkles } from "lucide-react";
+import { Cat, Info, Award, Heart, Paw, Star, Sparkles, Music, Volume2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const catFacts = [
   "Cats have excellent night vision and can see at one-sixth the light level required for human vision.",
@@ -25,6 +28,16 @@ const Index = () => {
   const [currentFactIndex, setCurrentFactIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [catHappiness, setCatHappiness] = useState(50);
+  const [isMeowing, setIsMeowing] = useState(false);
+  const [volume, setVolume] = useState(50);
+  const [adoptionStats, setAdoptionStats] = useState([
+    { month: 'Jan', adoptions: 65 },
+    { month: 'Feb', adoptions: 59 },
+    { month: 'Mar', adoptions: 80 },
+    { month: 'Apr', adoptions: 81 },
+    { month: 'May', adoptions: 56 },
+    { month: 'Jun', adoptions: 55 },
+  ]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,6 +57,18 @@ const Index = () => {
     });
   };
 
+  const playMeow = () => {
+    setIsMeowing(true);
+    const audio = new Audio('/meow.mp3');
+    audio.volume = volume / 100;
+    audio.play();
+    setTimeout(() => setIsMeowing(false), 1000);
+  };
+
+  const handleVolumeChange = (newVolume) => {
+    setVolume(newVolume[0]);
+  };
+
   return (
     <div className="min-h-screen p-8 bg-gradient-to-b from-purple-100 to-pink-100">
       <motion.h1 
@@ -58,27 +83,52 @@ const Index = () => {
       </motion.h1>
       
       <div className="max-w-5xl mx-auto">
-        <motion.div
-          className="fixed top-4 right-4 z-10"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <Button
-            onClick={handleLike}
-            className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-full shadow-lg"
+        <motion.div className="fixed top-4 right-4 z-10 flex flex-col items-end space-y-4">
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           >
-            <Heart className="mr-2 h-5 w-5" /> Love Cats! ({likeCount})
-          </Button>
-        </motion.div>
-        <motion.div
-          className="fixed top-20 right-4 z-10 bg-white p-4 rounded-lg shadow-lg"
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <h3 className="text-lg font-bold mb-2">Cat Happiness Meter</h3>
-          <Progress value={catHappiness} className="w-40 h-2 mb-2" />
-          <p className="text-sm text-gray-600">{catHappiness}% Happy</p>
+            <Button
+              onClick={handleLike}
+              className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-full shadow-lg"
+            >
+              <Heart className="mr-2 h-5 w-5" /> Love Cats! ({likeCount})
+            </Button>
+          </motion.div>
+          <motion.div
+            className="bg-white p-4 rounded-lg shadow-lg"
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <h3 className="text-lg font-bold mb-2">Cat Happiness Meter</h3>
+            <Progress value={catHappiness} className="w-40 h-2 mb-2" />
+            <p className="text-sm text-gray-600">{catHappiness}% Happy</p>
+          </motion.div>
+          <motion.div
+            className="bg-white p-4 rounded-lg shadow-lg"
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            <h3 className="text-lg font-bold mb-2">Meow Player</h3>
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={playMeow}
+                className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-full shadow-lg"
+                disabled={isMeowing}
+              >
+                {isMeowing ? <Music className="animate-spin" /> : <Volume2 />}
+              </Button>
+              <Slider
+                value={[volume]}
+                onValueChange={handleVolumeChange}
+                max={100}
+                step={1}
+                className="w-24"
+              />
+            </div>
+          </motion.div>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -312,34 +362,73 @@ const Index = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <h2 className="text-3xl font-bold mb-6 text-purple-800 text-center">Cat Adoption Form</h2>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            toast({
-              title: "Form Submitted!",
-              description: "We'll be in touch about your cat adoption soon!",
-              duration: 5000,
-            });
-          }}>
-            <div className="mb-4">
-              <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">Your Name</label>
-              <input type="text" id="name" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
-              <input type="email" id="email" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
-            </div>
-            <div className="mb-6">
-              <label htmlFor="message" className="block text-gray-700 text-sm font-bold mb-2">Why do you want to adopt a cat?</label>
-              <textarea id="message" rows="4" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
-            </div>
-            <div className="flex items-center justify-center">
-              <Button type="submit" className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Submit Adoption Form
-              </Button>
-            </div>
-          </form>
+          <h2 className="text-3xl font-bold mb-6 text-purple-800 text-center">Cat Adoption Statistics</h2>
+          <LineChart
+            width={600}
+            height={300}
+            data={adoptionStats}
+            margin={{
+              top: 5,
+              right: 30,
+              left: 20,
+              bottom: 5,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="adoptions" stroke="#8884d8" activeDot={{ r: 8 }} />
+          </LineChart>
         </motion.div>
+        
+        <Dialog>
+          <DialogTrigger asChild>
+            <motion.div
+              className="mt-12 text-center"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+            >
+              <Button className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg">
+                Open Adoption Form
+              </Button>
+            </motion.div>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Cat Adoption Form</DialogTitle>
+              <DialogDescription>Fill out this form to start your cat adoption journey!</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              toast({
+                title: "Form Submitted!",
+                description: "We'll be in touch about your cat adoption soon!",
+                duration: 5000,
+              });
+            }}>
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">Your Name</label>
+                <input type="text" id="name" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
+                <input type="email" id="email" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+              </div>
+              <div className="mb-6">
+                <label htmlFor="message" className="block text-gray-700 text-sm font-bold mb-2">Why do you want to adopt a cat?</label>
+                <textarea id="message" rows="4" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
+              </div>
+              <div className="flex items-center justify-center">
+                <Button type="submit" className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                  Submit Adoption Form
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
