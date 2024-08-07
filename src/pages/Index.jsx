@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Cat, Info, Award, Heart, Paw } from "lucide-react";
+import { Cat, Info, Award, Heart, Paw, Star } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const catFacts = [
   "Cats have excellent night vision and can see at one-sixth the light level required for human vision.",
@@ -21,6 +22,8 @@ const catFacts = [
 const Index = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [currentFactIndex, setCurrentFactIndex] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -28,6 +31,15 @@ const Index = () => {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleLike = () => {
+    setLikeCount(prev => prev + 1);
+    toast({
+      title: "Meow-velous!",
+      description: "Your love for cats has been recorded!",
+      duration: 3000,
+    });
+  };
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-b from-purple-100 to-pink-100">
@@ -42,18 +54,40 @@ const Index = () => {
       
       <div className="max-w-5xl mx-auto">
         <motion.div
+          className="fixed top-4 right-4 z-10"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <Button
+            onClick={handleLike}
+            className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-full shadow-lg"
+          >
+            <Heart className="mr-2 h-5 w-5" /> Love Cats! ({likeCount})
+          </Button>
+        </motion.div>
+        <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="relative"
+          className="relative overflow-hidden rounded-lg mb-8 shadow-2xl"
+          onHoverStart={() => setIsHovering(true)}
+          onHoverEnd={() => setIsHovering(false)}
         >
-          <img 
+          <motion.img 
             src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg" 
             alt="Adorable cat" 
-            className="mx-auto object-cover w-full h-[600px] rounded-lg mb-8 shadow-2xl"
+            className="mx-auto object-cover w-full h-[600px]"
+            animate={{ scale: isHovering ? 1.05 : 1 }}
+            transition={{ duration: 0.3 }}
           />
           <motion.div 
-            className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-4 rounded"
+            className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isHovering ? 0.7 : 0.3 }}
+            transition={{ duration: 0.3 }}
+          />
+          <motion.div 
+            className="absolute bottom-4 left-4 right-4 text-white p-4 rounded"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
@@ -65,9 +99,9 @@ const Index = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
-                className="text-lg font-semibold"
+                className="text-xl font-semibold"
               >
-                <Paw className="inline-block mr-2 h-5 w-5" />
+                <Paw className="inline-block mr-2 h-6 w-6" />
                 {catFacts[currentFactIndex]}
               </motion.p>
             </AnimatePresence>
@@ -125,19 +159,21 @@ const Index = () => {
                   <CardContent>
                     <ul className="grid grid-cols-2 gap-4">
                       {[
-                        { name: "Siamese", description: "Known for their distinctive coloring and vocal nature." },
-                        { name: "Maine Coon", description: "One of the largest domesticated cat breeds with a distinctive physical appearance." },
-                        { name: "Persian", description: "Recognized for their long fur and flat faces." },
-                        { name: "Bengal", description: "Noted for their wild appearance resembling leopards." },
-                        { name: "Scottish Fold", description: "Famous for their unique folded ears and owl-like appearance." }
+                        { name: "Siamese", description: "Known for their distinctive coloring and vocal nature.", image: "https://upload.wikimedia.org/wikipedia/commons/2/25/Siam_lilacpoint.jpg" },
+                        { name: "Maine Coon", description: "One of the largest domesticated cat breeds with a distinctive physical appearance.", image: "https://upload.wikimedia.org/wikipedia/commons/5/5f/Maine_Coon_cat_by_Tomitheos.JPG" },
+                        { name: "Persian", description: "Recognized for their long fur and flat faces.", image: "https://upload.wikimedia.org/wikipedia/commons/1/15/White_Persian_Cat.jpg" },
+                        { name: "Bengal", description: "Noted for their wild appearance resembling leopards.", image: "https://upload.wikimedia.org/wikipedia/commons/b/ba/Paintedcats_Red_Star_standing.jpg" },
+                        { name: "Scottish Fold", description: "Famous for their unique folded ears and owl-like appearance.", image: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Adult_Scottish_Fold.jpg" }
                       ].map((breed, index) => (
                         <motion.li
                           key={index}
-                          className="bg-white p-4 rounded-lg shadow-md"
+                          className="bg-white p-4 rounded-lg shadow-md overflow-hidden"
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: index * 0.1 }}
+                          whileHover={{ scale: 1.05 }}
                         >
+                          <img src={breed.image} alt={breed.name} className="w-full h-40 object-cover mb-4 rounded" />
                           <h3 className="font-bold text-lg mb-2">{breed.name}</h3>
                           <p>{breed.description}</p>
                         </motion.li>
@@ -191,16 +227,29 @@ const Index = () => {
         </Tabs>
         
         <motion.div
-          className="text-center"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          className="text-center mt-8"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
         >
-          <Button 
-            onClick={() => setLikeCount(prev => prev + 1)}
-            className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-full shadow-lg"
-          >
-            <Award className="mr-2 h-5 w-5" /> Love Cats! ({likeCount})
-          </Button>
+          <h2 className="text-3xl font-bold mb-4 text-purple-800">Rate Your Cat Experience</h2>
+          <div className="flex justify-center space-x-2">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <motion.button
+                key={star}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                className="text-yellow-400 text-4xl focus:outline-none"
+                onClick={() => toast({
+                  title: "Thanks for rating!",
+                  description: `You gave us ${star} stars!`,
+                  duration: 3000,
+                })}
+              >
+                <Star className="h-10 w-10" />
+              </motion.button>
+            ))}
+          </div>
         </motion.div>
       </div>
     </div>
