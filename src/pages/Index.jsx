@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Cat, Info, Award, Heart, Paw, Star } from "lucide-react";
+import { Cat, Info, Award, Heart, Paw, Star, Sparkles } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Progress } from "@/components/ui/progress";
 
 const catFacts = [
   "Cats have excellent night vision and can see at one-sixth the light level required for human vision.",
@@ -23,6 +24,7 @@ const Index = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [currentFactIndex, setCurrentFactIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
+  const [catHappiness, setCatHappiness] = useState(50);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,6 +36,7 @@ const Index = () => {
 
   const handleLike = () => {
     setLikeCount(prev => prev + 1);
+    setCatHappiness(prev => Math.min(prev + 10, 100));
     toast({
       title: "Meow-velous!",
       description: "Your love for cats has been recorded!",
@@ -49,7 +52,9 @@ const Index = () => {
         transition={{ duration: 0.5 }}
         className="text-6xl font-bold mb-8 text-center text-purple-800"
       >
+        <Sparkles className="inline-block mr-2 h-12 w-12 text-yellow-400" />
         Purrfect Cat Paradise
+        <Sparkles className="inline-block ml-2 h-12 w-12 text-yellow-400" />
       </motion.h1>
       
       <div className="max-w-5xl mx-auto">
@@ -64,6 +69,16 @@ const Index = () => {
           >
             <Heart className="mr-2 h-5 w-5" /> Love Cats! ({likeCount})
           </Button>
+        </motion.div>
+        <motion.div
+          className="fixed top-20 right-4 z-10 bg-white p-4 rounded-lg shadow-lg"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <h3 className="text-lg font-bold mb-2">Cat Happiness Meter</h3>
+          <Progress value={catHappiness} className="w-40 h-2 mb-2" />
+          <p className="text-sm text-gray-600">{catHappiness}% Happy</p>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -106,6 +121,40 @@ const Index = () => {
               </motion.p>
             </AnimatePresence>
           </motion.div>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="mb-8 text-center"
+        >
+          <h2 className="text-3xl font-bold mb-4 text-purple-800">Interactive Cat Playground</h2>
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <motion.img
+              src="https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg"
+              alt="Playful cat"
+              className="mx-auto w-64 h-64 object-cover rounded-full mb-4"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
+              drag
+              dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
+            />
+            <p className="text-lg mb-2">Drag the cat to play!</p>
+            <Button
+              onClick={() => {
+                setCatHappiness(prev => Math.min(prev + 5, 100));
+                toast({
+                  title: "Purr-fect!",
+                  description: "The cat enjoyed playing with you!",
+                  duration: 2000,
+                });
+              }}
+              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+            >
+              <Paw className="mr-2 h-5 w-5" /> Pet the Cat
+            </Button>
+          </div>
         </motion.div>
         
         <Tabs defaultValue="facts" className="mb-8">
@@ -240,16 +289,56 @@ const Index = () => {
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 className="text-yellow-400 text-4xl focus:outline-none"
-                onClick={() => toast({
-                  title: "Thanks for rating!",
-                  description: `You gave us ${star} stars!`,
-                  duration: 3000,
-                })}
+                onClick={() => {
+                  toast({
+                    title: "Thanks for rating!",
+                    description: `You gave us ${star} stars!`,
+                    duration: 3000,
+                  });
+                  if (star >= 4) {
+                    setCatHappiness(prev => Math.min(prev + 15, 100));
+                  }
+                }}
               >
                 <Star className="h-10 w-10" />
               </motion.button>
             ))}
           </div>
+        </motion.div>
+        
+        <motion.div
+          className="mt-12 bg-white p-8 rounded-lg shadow-lg"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <h2 className="text-3xl font-bold mb-6 text-purple-800 text-center">Cat Adoption Form</h2>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            toast({
+              title: "Form Submitted!",
+              description: "We'll be in touch about your cat adoption soon!",
+              duration: 5000,
+            });
+          }}>
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">Your Name</label>
+              <input type="text" id="name" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
+              <input type="email" id="email" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+            </div>
+            <div className="mb-6">
+              <label htmlFor="message" className="block text-gray-700 text-sm font-bold mb-2">Why do you want to adopt a cat?</label>
+              <textarea id="message" rows="4" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
+            </div>
+            <div className="flex items-center justify-center">
+              <Button type="submit" className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Submit Adoption Form
+              </Button>
+            </div>
+          </form>
         </motion.div>
       </div>
     </div>
